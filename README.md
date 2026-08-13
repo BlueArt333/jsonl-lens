@@ -14,7 +14,15 @@ into memory.
 - Reads a file or standard input.
 - Uses only the Python standard library at runtime.
 
-## Install for development
+## Install
+
+Install the latest published release:
+
+```bash
+python -m pip install jsonl-lens
+```
+
+For development from a checkout:
 
 ```bash
 git clone https://github.com/BlueArt333/jsonl-lens.git
