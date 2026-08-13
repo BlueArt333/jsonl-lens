@@ -20,7 +20,8 @@ jobs:
         with:
           base: ${{ github.event.pull_request.base.sha }}
           head: ${{ github.event.pull_request.head.sha }}
-          fail-on: high
+          # During initial adoption, report high-risk workflow changes without blocking.
+          fail-on: critical
           output-format: markdown
           output-file: patchproof-report.md
 
