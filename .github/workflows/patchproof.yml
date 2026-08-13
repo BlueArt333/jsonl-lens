@@ -1,0 +1,33 @@
+name: PatchProof
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Review pull request risk
+        id: patchproof
+        uses: BlueArt333/patchproof@2e4193f67abd7046748a8b14c0b0b647c86803e8
+        with:
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          # During initial adoption, report high-risk workflow changes without blocking.
+          fail-on: critical
+          output-format: markdown
+          output-file: patchproof-report.md
+
+      - name: Add report to job summary
+        if: always() && steps.patchproof.outputs.report-path != ''
+        shell: bash
+        env:
+          REPORT_PATH: ${{ steps.patchproof.outputs.report-path }}
+        run: cat "$REPORT_PATH" >> "$GITHUB_STEP_SUMMARY"

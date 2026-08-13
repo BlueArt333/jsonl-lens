@@ -26,8 +26,12 @@ python -m pip install -e ".[dev]"
 ```bash
 jsonl-lens events.jsonl
 jsonl-lens events.jsonl --format json
+jsonl-lens events.jsonl --require-field id --require-field timestamp
 Get-Content events.jsonl | jsonl-lens
 ```
+
+Use repeatable `--require-field` options to check that every object record contains the
+fields your pipeline expects. Non-object records are reported when this validation is enabled.
 
 Exit status is `0` when every nonblank line is valid JSON, `1` when malformed lines are
 found, and `2` for file or encoding errors.
@@ -44,4 +48,3 @@ python -m ruff check .
 ## License
 
 MIT
-

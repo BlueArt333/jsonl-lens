@@ -36,7 +36,12 @@ def _type_name(value: object) -> str:
     return "object"
 
 
-def inspect_stream(stream: TextIO, *, max_errors: int = 20) -> Inspection:
+def inspect_stream(
+    stream: TextIO,
+    *,
+    max_errors: int = 20,
+    required_fields: tuple[str, ...] = (),
+) -> Inspection:
     result = Inspection()
     for line_number, raw_line in enumerate(stream, start=1):
         text = raw_line.strip()
@@ -56,6 +61,15 @@ def inspect_stream(stream: TextIO, *, max_errors: int = 20) -> Inspection:
         result.types[_type_name(value)] += 1
         if isinstance(value, dict):
             result.fields.update(str(key) for key in value)
+            missing = [field_name for field_name in required_fields if field_name not in value]
+            if missing and len(result.errors) < max_errors:
+                result.errors.append(
+                    f"line {line_number}: missing required field(s): {', '.join(missing)}"
+                )
+        elif required_fields and len(result.errors) < max_errors:
+            result.errors.append(
+                f"line {line_number}: expected an object for required-field validation"
+            )
     return result
 
 
@@ -98,6 +112,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("path", nargs="?", help="JSONL file path; omit to read standard input")
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--max-errors", type=int, default=20)
+    parser.add_argument(
+        "--require-field",
+        action="append",
+        default=[],
+        metavar="NAME",
+        help="require NAME in every object record; may be repeated",
+    )
     return parser
 
 
@@ -110,9 +131,17 @@ def run(argv: list[str] | None = None) -> int:
     try:
         if args.path:
             with Path(args.path).open(encoding="utf-8") as stream:
-                result = inspect_stream(stream, max_errors=args.max_errors)
+                result = inspect_stream(
+                    stream,
+                    max_errors=args.max_errors,
+                    required_fields=tuple(args.require_field),
+                )
         else:
-            result = inspect_stream(sys.stdin, max_errors=args.max_errors)
+            result = inspect_stream(
+                sys.stdin,
+                max_errors=args.max_errors,
+                required_fields=tuple(args.require_field),
+            )
     except (OSError, UnicodeError) as exc:
         print(f"jsonl-lens: {exc}", file=sys.stderr)
         return 2
@@ -128,4 +157,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

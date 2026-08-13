@@ -37,3 +37,14 @@ def test_run_returns_one_for_invalid_json(tmp_path, capsys) -> None:
     assert run([str(path)]) == 1
     assert "line 2" in capsys.readouterr().out
 
+
+def test_require_field_reports_missing_field_and_non_object(tmp_path, capsys) -> None:
+    path = tmp_path / "mixed.jsonl"
+    path.write_text('{"id": 1}\n{"name": "Ada"}\n[1, 2]\n', encoding="utf-8")
+
+    exit_code = run([str(path), "--require-field", "id"])
+
+    output = capsys.readouterr().out
+    assert exit_code == 1
+    assert "line 2: missing required field(s): id" in output
+    assert "line 3: expected an object" in output
