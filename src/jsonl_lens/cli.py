@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import gzip
 import json
 import sys
 from collections import Counter
@@ -34,6 +35,12 @@ def _type_name(value: object) -> str:
     if isinstance(value, list):
         return "array"
     return "object"
+
+
+def _open_text(path: Path) -> TextIO:
+    if path.suffix.lower() == ".gz":
+        return gzip.open(path, mode="rt", encoding="utf-8")
+    return path.open(encoding="utf-8")
 
 
 def inspect_stream(
@@ -109,7 +116,11 @@ def build_parser() -> argparse.ArgumentParser:
         prog="jsonl-lens",
         description="Validate and summarize a JSON Lines file without loading it into memory.",
     )
-    parser.add_argument("path", nargs="?", help="JSONL file path; omit to read standard input")
+    parser.add_argument(
+        "path",
+        nargs="?",
+        help="JSONL or .jsonl.gz file path; omit to read standard input",
+    )
     parser.add_argument("--format", choices=("text", "json"), default="text")
     parser.add_argument("--max-errors", type=int, default=20)
     parser.add_argument(
@@ -130,7 +141,8 @@ def run(argv: list[str] | None = None) -> int:
     source = args.path or "<stdin>"
     try:
         if args.path:
-            with Path(args.path).open(encoding="utf-8") as stream:
+            path = Path(args.path)
+            with _open_text(path) as stream:
                 result = inspect_stream(
                     stream,
                     max_errors=args.max_errors,
