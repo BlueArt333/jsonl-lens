@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gzip
 import io
 import json
 
@@ -48,3 +49,24 @@ def test_require_field_reports_missing_field_and_non_object(tmp_path, capsys) ->
     assert exit_code == 1
     assert "line 2: missing required field(s): id" in output
     assert "line 3: expected an object" in output
+
+
+def test_run_reads_gzip_compressed_jsonl(tmp_path, capsys) -> None:
+    path = tmp_path / "events.jsonl.gz"
+    with gzip.open(path, mode="wt", encoding="utf-8") as stream:
+        stream.write('{"id": 1}\n{"id": 2}\n')
+
+    exit_code = run([str(path), "--format", "json", "--require-field", "id"])
+
+    assert exit_code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["valid_records"] == 2
+    assert payload["fields"] == {"id": 2}
+
+
+def test_run_reports_invalid_gzip_file(tmp_path, capsys) -> None:
+    path = tmp_path / "broken.jsonl.gz"
+    path.write_text("not gzip data", encoding="utf-8")
+
+    assert run([str(path)]) == 2
+    assert "Not a gzipped file" in capsys.readouterr().err

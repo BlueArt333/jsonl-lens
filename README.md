@@ -10,6 +10,7 @@ into memory.
 - Reports malformed JSON with line and column numbers.
 - Counts valid records, blank lines, top-level JSON types, and common object fields.
 - Emits human-readable text or JSON for automation.
+- Streams `.jsonl.gz` files directly without manual decompression.
 - Reads a file or standard input.
 - Uses only the Python standard library at runtime.
 
@@ -25,6 +26,7 @@ python -m pip install -e ".[dev]"
 
 ```bash
 jsonl-lens events.jsonl
+jsonl-lens archived-events.jsonl.gz
 jsonl-lens events.jsonl --format json
 jsonl-lens events.jsonl --require-field id --require-field timestamp
 Get-Content events.jsonl | jsonl-lens
