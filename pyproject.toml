@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jsonl-lens"
+version = "0.1.0"
+description = "A tiny, dependency-free CLI for validating and inspecting JSON Lines files"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "BlueArt333" }]
+keywords = ["jsonl", "json-lines", "cli", "data-validation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.scripts]
+jsonl-lens = "jsonl_lens.cli:main"
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.11"]
+
+[project.urls]
+Repository = "https://github.com/BlueArt333/jsonl-lens"
+Issues = "https://github.com/BlueArt333/jsonl-lens/issues"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
